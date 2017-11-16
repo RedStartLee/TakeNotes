@@ -1,6 +1,7 @@
 package com.lihuzi.takenotes.ui.activity;
 
 import android.os.Bundle;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -18,7 +19,6 @@ public class RecordActivity extends AppCompatActivity
     private ArrayList<NotesModel> _list;
 
     private RecyclerView _recyclerView;
-    private TextView _monthSum;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -33,28 +33,36 @@ public class RecordActivity extends AppCompatActivity
     private void initView()
     {
         _recyclerView = findViewById(R.id.act_record_recyclerview);
-        _monthSum = findViewById(R.id.act_record_month_sum_tv);
     }
 
     private void initListener()
     {
+        _recyclerView.setOnScrollListener(new RecyclerView.OnScrollListener()
+        {
+            @Override
+            public void onScrollStateChanged(RecyclerView recyclerView, int newState)
+            {
+            }
+
+            @Override
+            public void onScrolled(RecyclerView recyclerView, int dx, int dy)
+            {
+                int position = ((LinearLayoutManager) recyclerView.getLayoutManager()).findFirstCompletelyVisibleItemPosition();
+                if (position != headerPosition)
+                {
+
+                }
+            }
+        });
     }
 
-    private void initLoad()
-    {
-        _recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        ArrayList<NotesModel> list = CoreDB.queryThisMonth(System.currentTimeMillis());
-        _recyclerView.setAdapter(new RecordAdapter(list));
-        setMonthSum(list);
-    }
-
-    private void setMonthSum(ArrayList<NotesModel> list)
+    private void setHeaderView()
     {
         float pay = 0;
         float obtain = 0;
-        for (int i = 0; i < list.size(); i++)
+        for (int i = 0; i < _list.size(); i++)
         {
-            NotesModel model = list.get(i);
+            NotesModel model = _list.get(i);
             if (model._type > 0)
             {
                 pay += model._sum;
@@ -64,7 +72,18 @@ public class RecordActivity extends AppCompatActivity
                 obtain += model._sum;
             }
         }
-        _monthSum.setText("本月支出: " + String.valueOf(pay) + ",本月收入: " + String.valueOf(obtain));
+//        _headerView.setText("本月支出: " + String.valueOf(pay) + ",本月收入: " + String.valueOf(obtain));
     }
 
+    private int headerPosition;
+
+    private void initLoad()
+    {
+        _recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        ArrayList<NotesModel> list = CoreDB.queryThisMonth(System.currentTimeMillis());
+        TextView header = new TextView(this);
+        header.setTextColor(ContextCompat.getColor(this, R.color.text_color_dark));
+        header.setTextSize(20);
+//        _recyclerView.setAdapter(new RecordAdapter(list));
+    }
 }

@@ -11,6 +11,7 @@ import android.widget.TextView;
 import com.lihuzi.takenotes.R;
 import com.lihuzi.takenotes.db.CoreDB;
 import com.lihuzi.takenotes.model.NotesModel;
+import com.lihuzi.takenotes.ui.viewholder.BaseViewHolder;
 import com.lihuzi.takenotes.utils.DateUtils;
 import com.lihuzi.takenotes.utils.GoodsTypeUtils;
 
@@ -20,32 +21,32 @@ import java.util.ArrayList;
  * Created by cocav on 2017/11/14.
  */
 
-public class RecordAdapter extends RecyclerView.Adapter<RecordAdapter.RecordViewHolder>
+public class RecordAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
 {
     private ArrayList<NotesModel> _list;
 
-    public RecordAdapter(ArrayList<NotesModel> list)
+    public RecordAdapter(ArrayList<NotesModel> list, TextView headerView)
     {
         this._list = list;
     }
 
     @Override
-    public RecordViewHolder onCreateViewHolder(ViewGroup parent, int viewType)
+    public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType)
     {
-        View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_record_layout, parent, false);
-        return new RecordViewHolder(v);
+          View  v = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_record_layout, parent, false);
+            return new RecordViewHolder(v);
     }
 
     @Override
-    public void onBindViewHolder(RecordViewHolder holder, int position)
+    public void onBindViewHolder(RecyclerView.ViewHolder holder, int position)
     {
-        holder.setModel(_list.get(position));
+            ((RecordViewHolder) holder).setModel(_list.get(position - 1));
     }
 
     @Override
     public int getItemCount()
     {
-        return _list.size();
+        return _list.size() ;
     }
 
     class RecordViewHolder extends RecyclerView.ViewHolder
@@ -85,18 +86,21 @@ public class RecordAdapter extends RecyclerView.Adapter<RecordAdapter.RecordView
             @Override
             public boolean onLongClick(View v)
             {
-                AlertDialog.Builder builder = new AlertDialog.Builder(v.getContext());
-                builder.setItems(new String[]{"删除"}, new DialogInterface.OnClickListener()
+                if (getAdapterPosition() != 0)
                 {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which)
+                    AlertDialog.Builder builder = new AlertDialog.Builder(v.getContext());
+                    builder.setItems(new String[]{"删除"}, new DialogInterface.OnClickListener()
                     {
-                        CoreDB.deleteById(_model._db_id);
-                        _list.remove(getAdapterPosition());
-                        notifyItemRemoved(getAdapterPosition());
-                    }
-                });
-                builder.show();
+                        @Override
+                        public void onClick(DialogInterface dialog, int which)
+                        {
+                            CoreDB.deleteById(_model._db_id);
+                            _list.remove(getAdapterPosition() - 1);
+                            notifyItemRemoved(getAdapterPosition());
+                        }
+                    });
+                    builder.show();
+                }
                 return true;
             }
         };
