@@ -1,7 +1,6 @@
 package com.lihuzi.takenotes.ui.activity;
 
 import android.os.Bundle;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -11,14 +10,19 @@ import com.lihuzi.takenotes.R;
 import com.lihuzi.takenotes.db.CoreDB;
 import com.lihuzi.takenotes.model.NotesModel;
 import com.lihuzi.takenotes.ui.adapter.RecordAdapter;
+import com.lihuzi.takenotes.utils.DateUtils;
 
 import java.util.ArrayList;
 
 public class RecordActivity extends AppCompatActivity
 {
     private ArrayList<NotesModel> _list;
+    private int _headerPosition;
+    private String _headerDateString = "";
 
     private RecyclerView _recyclerView;
+    private RecordAdapter _adapter;
+    private TextView _headerView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -33,6 +37,7 @@ public class RecordActivity extends AppCompatActivity
     private void initView()
     {
         _recyclerView = findViewById(R.id.act_record_recyclerview);
+        _headerView = findViewById(R.id.act_record_headerview_tv);
     }
 
     private void initListener()
@@ -42,48 +47,59 @@ public class RecordActivity extends AppCompatActivity
             @Override
             public void onScrollStateChanged(RecyclerView recyclerView, int newState)
             {
+
             }
 
             @Override
             public void onScrolled(RecyclerView recyclerView, int dx, int dy)
             {
-                int position = ((LinearLayoutManager) recyclerView.getLayoutManager()).findFirstCompletelyVisibleItemPosition();
-                if (position != headerPosition)
+                int position = ((LinearLayoutManager) recyclerView.getLayoutManager()).findFirstVisibleItemPosition();
+                if (position != _headerPosition)
                 {
-
+                    setHeaderView(position);
                 }
             }
         });
     }
 
-    private void setHeaderView()
-    {
-        float pay = 0;
-        float obtain = 0;
-        for (int i = 0; i < _list.size(); i++)
-        {
-            NotesModel model = _list.get(i);
-            if (model._type > 0)
-            {
-                pay += model._sum;
-            }
-            else
-            {
-                obtain += model._sum;
-            }
-        }
-//        _headerView.setText("本月支出: " + String.valueOf(pay) + ",本月收入: " + String.valueOf(obtain));
-    }
+    private final static String MONTH_FORMAT = "yyyy-MM";
 
-    private int headerPosition;
+    private void setHeaderView(int position)
+    {
+        _headerPosition = position;
+        long date = _adapter.getItem(position)._date;
+        String month = DateUtils.getTimeFormatString(MONTH_FORMAT, date);
+        if (!month.equals(_headerDateString))
+        {
+            _headerDateString = month;
+            ArrayList<NotesModel> list = CoreDB.queryThisMonth(date);
+            float pay = 0;
+            float obtain = 0;
+            for (int i = 0; i < list.size(); i++)
+            {
+                NotesModel model = list.get(i);
+                if (model._type > 0)
+                {
+                    pay += model._sum;
+                }
+                else
+                {
+                    obtain += model._sum;
+                }
+            }
+            _headerView.setText("本月支出: " + String.valueOf(pay) + ",本月收入: " + String.valueOf(obtain));
+        }
+    }
 
     private void initLoad()
     {
         _recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        ArrayList<NotesModel> list = CoreDB.queryThisMonth(System.currentTimeMillis());
-        TextView header = new TextView(this);
-        header.setTextColor(ContextCompat.getColor(this, R.color.text_color_dark));
-        header.setTextSize(20);
-//        _recyclerView.setAdapter(new RecordAdapter(list));
+        ArrayList<NotesModel> list = CoreDB.queryPay();
+        _adapter = new RecordAdapter(list);
+        _recyclerView.setAdapter(_adapter);
+        if (_adapter.getItemCount() > 0)
+        {
+            setHeaderView(0);
+        }
     }
 }

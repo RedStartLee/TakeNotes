@@ -81,12 +81,13 @@ public class CoreDB
     {
         initAndOpen();
         ArrayList<NotesModel> result = new ArrayList<>();
-        Cursor cursor = _db.query(CORE_MONEY_TABLE_NAME, CONTACT_DATA_COLUMNS, null, null, null, null, null);
+        Cursor cursor = _db.query(CORE_MONEY_TABLE_NAME, CONTACT_DATA_COLUMNS, null, null, null, null, CORE_MONEY_DATE + " ASC");
         if (cursor.moveToFirst())
         {
             do
             {
                 NotesModel model = new NotesModel();
+                model._db_id = cursor.getInt(cursor.getColumnIndex(CORE_MONEY_ID));
                 model._name = cursor.getString(cursor.getColumnIndex(CORE_MONEY_GOODS_NAME));
                 model._sum = cursor.getFloat(cursor.getColumnIndex(CORE_MONEY_GOODS_SUM));
                 model._type = cursor.getInt(cursor.getColumnIndex(CORE_MONEY_GOODS_TYPE));
